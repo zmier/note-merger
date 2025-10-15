@@ -1,11 +1,11 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
+	"id": "note-merger",
+	"name": "Note Merger",
 	"version": "1.0.0",
-	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"minAppVersion": "1.5.11",
+	"description": "A simple plugin to merge all notes in the current folder into a single file.",
+	"author": "narra",
+	"authorUrl": "",
+	"fundingUrl": "",
 	"isDesktopOnly": false
 }
