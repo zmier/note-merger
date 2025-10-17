@@ -3,7 +3,7 @@
 	"name": "Note Merger",
 	"version": "1.0.0",
 	"minAppVersion": "1.5.11",
-	"description": "A simple plugin to merge all notes in the current folder into a single file.",
+	"description": "A powerful plugin to merge all notes linked from an active file into a single, cohesive document. Perfect for MOCs.",
 	"author": "narra",
 	"authorUrl": "",
 	"fundingUrl": "",
