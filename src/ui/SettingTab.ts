@@ -1,12 +1,12 @@
 // src/ui/SettingTab.ts
 
-import { App, Plugin, PluginSettingTab, Setting } from 'obsidian';
-import { NoteMergerSettings } from 'src/settings';
+import { App, PluginSettingTab, Setting } from 'obsidian';
+import NoteMerger from 'main';
 
 export class NoteMergerSettingTab extends PluginSettingTab {
-    plugin: Plugin & { settings: NoteMergerSettings; saveSettings: () => Promise<void>; };
+    plugin: NoteMerger;
 
-    constructor(app: App, plugin: Plugin & { settings: NoteMergerSettings; saveSettings: () => Promise<void>; }) {
+    constructor(app: App, plugin: NoteMerger) {
        super(app, plugin);
        this.plugin = plugin;
     }

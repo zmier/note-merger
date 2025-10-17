@@ -5,7 +5,7 @@ import { NoteMergerSettingTab } from './src/ui/SettingTab';
 import { NoteMergerSettings, DEFAULT_SETTINGS } from './src/settings';
 import { mergeLinkedFiles } from './src/merger'; // ◀︎ 引入我们的核心逻辑函数
 
-export default class MyPlugin extends Plugin {
+export default class NoteMerger extends Plugin {
     settings: NoteMergerSettings;
 
     async onload() {
