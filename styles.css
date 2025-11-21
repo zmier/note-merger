@@ -6,3 +6,40 @@ available in the app when your plugin is enabled.
 If your plugin does not need CSS, delete this file.
 
 */
+
+/* styles.css */
+
+.note-merger-diff-modal {
+    width: 80vw;
+    height: 80vh;
+}
+
+.note-merger-diff-container {
+    font-family: var(--font-monospace);
+    white-space: pre-wrap; /* 保留换行 */
+    line-height: 1.5;
+    overflow-y: auto;
+    max-height: 65vh;
+    padding: 10px;
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+}
+
+.diff-added {
+    background-color: rgba(76, 175, 80, 0.3); /* 绿色背景 */
+    text-decoration: none;
+    color: var(--text-normal);
+}
+
+.diff-removed {
+    background-color: rgba(244, 67, 54, 0.3); /* 红色背景 */
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+.diff-header {
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: var(--text-accent);
+}

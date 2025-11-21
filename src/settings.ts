@@ -1,15 +1,22 @@
-// src/settings.ts
-
-// 定义我们所有设置的“形状”
 export interface NoteMergerSettings {
     outputSuffix: string;
     headingLevel: number;
     separatorStyle: string;
+    ignoreYAML: boolean;
+    // includeParent: boolean; // [已废弃] 我们用下面的 mergeMode 代替它
+    contentBaseLevel: number;
+
+    // ▼▼▼ 新增：合并模式 ▼▼▼
+    mergeMode: 'clean' | 'append' | 'embed';
 }
 
-// 为这些设置提供默认值
 export const DEFAULT_SETTINGS: NoteMergerSettings = {
     outputSuffix: '_merged',
     headingLevel: 2,
-    separatorStyle: '---'
+    separatorStyle: '---',
+    ignoreYAML: true,
+    contentBaseLevel: 0,
+
+    // ▼▼▼ 默认为追加模式，符合你之前的测试习惯 ▼▼▼
+    mergeMode: 'append'
 }

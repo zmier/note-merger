@@ -1,7 +1,5 @@
-// src/ui/SettingTab.ts
-
 import { App, PluginSettingTab, Setting } from 'obsidian';
-import NoteMerger from 'main';
+import NoteMerger from 'main'; 
 
 export class NoteMergerSettingTab extends PluginSettingTab {
     plugin: NoteMerger;
@@ -16,41 +14,79 @@ export class NoteMergerSettingTab extends PluginSettingTab {
        containerEl.empty();
        containerEl.createEl('h2', {text: 'Note Merger Settings'});
 
-       // 设置项 1: 输出文件后缀
+       // --- 基础设置 ---
+       new Setting(containerEl).setName('Basic Settings').setHeading();
+
        new Setting(containerEl)
           .setName('Output file suffix')
-          .setDesc('The suffix to add to the merged filename (e.g., _merged).')
+          .setDesc('e.g. "_merged"')
           .addText(text => text
-             .setPlaceholder('_merged')
              .setValue(this.plugin.settings.outputSuffix)
              .onChange(async (value) => {
                 this.plugin.settings.outputSuffix = value;
                 await this.plugin.saveSettings();
              }));
 
-       // 设置项 2: 标题级别
+       // --- 核心：合并模式选择 ---
        new Setting(containerEl)
-          .setName('Heading level')
-          .setDesc('The heading level for each merged note title.')
+          .setName('Merge Mode')
+          .setDesc('How should the content be combined?')
           .addDropdown(dropdown => dropdown
-             .addOption('1', 'H1 (#)')
-             .addOption('2', 'H2 (##)')
-             .addOption('3', 'H3 (###)')
-             .addOption('4', 'H4 (####)')
-             .addOption('5', 'H5 (#####)')
-             .addOption('6', 'H6 (######)')
-             .setValue(this.plugin.settings.headingLevel.toString())
+             .addOption('clean', 'Clean (Only merged content)')
+             .addOption('append', 'Append (Parent top, children bottom)')
+             .addOption('embed', 'Embed (Replace links in place)') // <-- 新功能！
+             .setValue(this.plugin.settings.mergeMode)
              .onChange(async (value) => {
-                this.plugin.settings.headingLevel = parseInt(value, 10);
+                // 强制类型转换，因为我们知道 value 肯定是这三个字符串之一
+                this.plugin.settings.mergeMode = value as 'clean' | 'append' | 'embed';
                 await this.plugin.saveSettings();
              }));
 
-       // 设置项 3: 内容分隔符
+       // --- 高级内容处理 ---
+       new Setting(containerEl).setName('Content Processing').setHeading();
+
        new Setting(containerEl)
+          .setName('Ignore YAML Frontmatter')
+          .setDesc('Remove the metadata block (--- ... ---) from merged notes.')
+          .addToggle(toggle => toggle
+             .setValue(this.plugin.settings.ignoreYAML)
+             .onChange(async (value) => {
+                this.plugin.settings.ignoreYAML = value;
+                await this.plugin.saveSettings();
+             }));
+
+       new Setting(containerEl)
+          .setName('Demote Content Headings')
+          .setDesc('Automatically increase heading levels in merged content.')
+          .addDropdown(dropdown => dropdown
+             .addOption('0', 'Do not change (Keep original)')
+             .addOption('2', 'Start at H2 (##)')
+             .addOption('3', 'Start at H3 (###)')
+             .addOption('4', 'Start at H4 (####)')
+             .setValue(this.plugin.settings.contentBaseLevel.toString())
+             .onChange(async (value) => {
+                this.plugin.settings.contentBaseLevel = parseInt(value, 10);
+                await this.plugin.saveSettings();
+             }));
+        
+        new Setting(containerEl)
+            .setName('Wrapper Heading Level')
+            .setDesc('The heading level for the [[Link Name]] wrapper.')
+            .addDropdown(dropdown => dropdown
+                .addOption('1', 'H1 (#)')
+                .addOption('2', 'H2 (##)')
+                .addOption('3', 'H3 (###)')
+                .addOption('4', 'H4 (####)')
+                .setValue(this.plugin.settings.headingLevel.toString())
+                .onChange(async (value) => {
+                    this.plugin.settings.headingLevel = parseInt(value, 10);
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(containerEl)
           .setName('Content separator')
-          .setDesc('The markdown separator to place between merged notes.')
+          .setDesc('Separator between notes (Only for Clean/Append modes).')
           .addText(text => text
-             .setPlaceholder('---')
              .setValue(this.plugin.settings.separatorStyle)
              .onChange(async (value) => {
                 this.plugin.settings.separatorStyle = value;
