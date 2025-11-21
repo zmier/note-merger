@@ -4,8 +4,9 @@ import { NoteMergerSettings, DEFAULT_SETTINGS } from './src/settings';
 import { mergeLinkedFiles } from './src/merger';
 import { adjustHeadingLevel } from './src/heading-adjuster';
 import { createFileVersion } from './src/versioning';
-// ▼▼▼ 引入新函数 compareWithAnyFile ▼▼▼
 import { compareWithLatestVersion, compareWithSelectedVersion, compareWithAnyFile } from './src/diff-view';
+// ▼▼▼ 引入新弹窗 ▼▼▼
+import { MergeOptionsModal } from './src/ui/MergeOptionsModal';
 
 export default class NoteMerger extends Plugin {
     settings: NoteMergerSettings;
@@ -16,7 +17,13 @@ export default class NoteMerger extends Plugin {
        this.addCommand({
           id: 'merge-linked-notes',
           name: 'Merge Linked Notes',
-          callback: () => mergeLinkedFiles(this.app, this.settings)
+          callback: () => {
+             // ▼▼▼ 核心改动：不再直接合并，而是先打开配置弹窗 ▼▼▼
+             new MergeOptionsModal(this.app, this.settings, (runtimeOptions) => {
+                 // 用户点击弹窗的确认按钮后，执行这里的逻辑
+                 mergeLinkedFiles(this.app, runtimeOptions);
+             }).open();
+          }
        });
 
        this.addCommand({
@@ -40,11 +47,10 @@ export default class NoteMerger extends Plugin {
           callback: () => compareWithSelectedVersion(this.app)
        });
 
-       // ▼▼▼ 新增命令：对比任意文件 ▼▼▼
        this.addCommand({
           id: 'compare-any-file',
           name: 'Compare with Any File...',
-          icon: 'files', // 使用一个多文件的图标
+          icon: 'files',
           callback: () => compareWithAnyFile(this.app)
        });
 
