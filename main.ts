@@ -1,4 +1,4 @@
-import { Plugin, Notice, MarkdownView } from 'obsidian'; // ◀︎ 1. 添加 MarkdownView
+import { Plugin, Notice, MarkdownView } from 'obsidian';
 import { NoteMergerSettingTab } from './src/ui/SettingTab';
 import { NoteMergerSettings, DEFAULT_SETTINGS } from './src/settings';
 import { mergeLinkedFiles } from './src/merger';
@@ -7,42 +7,45 @@ import { createFileVersion } from './src/versioning';
 import { compareWithLatestVersion, compareWithSelectedVersion, compareWithAnyFile } from './src/diff-view';
 import { MergeOptionsModal } from './src/ui/MergeOptionsModal';
 import { EvidenceManager } from './src/evidence/EvidenceManager';
+import { LensManager } from './src/lens-crafter/LensManager'; // ◀︎ 引入新模块
 
 export default class NoteMerger extends Plugin {
     settings: NoteMergerSettings;
     evidenceManager: EvidenceManager;
+    lensManager: LensManager; // ◀︎ 持有实例
 
     async onload() {
        await this.loadSettings();
 
-       // --- 初始化 Evidence Manager ---
-       this.evidenceManager = new EvidenceManager(
-           this.app,
-           this.settings,
-           this.saveSettings.bind(this)
-       );
+       // --- Init Managers ---
+       this.evidenceManager = new EvidenceManager(this.app, this.settings, this.saveSettings.bind(this));
+       this.lensManager = new LensManager(this.app); // ◀︎ 初始化
 
-       // 状态栏
+       // --- UI Setup ---
        const statusBarItem = this.addStatusBarItem();
        this.evidenceManager.setStatusBar(statusBarItem);
-
-       // 点击状态栏 -> 触发重定向收集
        statusBarItem.addClass('mod-clickable');
        statusBarItem.onClickEvent(() => {
            this.evidenceManager.quickCapture(true);
        });
 
-       // --- Evidence Mapper Commands ---
+       // --- 1. Lens Crafter Commands (新功能) ---
+       this.addCommand({
+           id: 'create-project-lens',
+           name: 'Create Project Lens Note (Context-Aware)',
+           icon: 'glasses', // 给它一个眼镜图标 👓
+           callback: () => {
+               this.lensManager.triggerLensCreation();
+           }
+       });
 
+       // --- 2. Evidence Mapper Commands ---
        this.addCommand({
            id: 'quick-capture-evidence',
            name: 'Quick Capture Evidence (Context-Aware)',
            icon: 'zap',
            checkCallback: (checking: boolean) => {
-               if (checking) {
-                   // ◀︎ 2. 修正这里: 直接使用 MarkdownView 类
-                   return !!this.app.workspace.getActiveViewOfType(MarkdownView);
-               }
+               if (checking) return !!this.app.workspace.getActiveViewOfType(MarkdownView);
                this.evidenceManager.quickCapture(false);
            }
        });
@@ -52,16 +55,12 @@ export default class NoteMerger extends Plugin {
            name: 'Redirect Capture Evidence (Change Topic)',
            icon: 'navigation',
            checkCallback: (checking: boolean) => {
-               if (checking) {
-                   // ◀︎ 3. 修正这里: 直接使用 MarkdownView 类
-                   return !!this.app.workspace.getActiveViewOfType(MarkdownView);
-               }
+               if (checking) return !!this.app.workspace.getActiveViewOfType(MarkdownView);
                this.evidenceManager.quickCapture(true);
            }
        });
 
-
-       // --- Merge Commands (Keep Existing) ---
+       // --- 3. Note Merger Commands ---
        this.addCommand({
           id: 'merge-linked-notes',
           name: 'Merge Linked Notes',
@@ -72,6 +71,7 @@ export default class NoteMerger extends Plugin {
           }
        });
 
+       // --- 4. Utilities ---
        this.addCommand({ id: 'create-file-version', name: 'Create Version (Snapshot)', icon: 'history', callback: () => createFileVersion(this.app) });
        this.addCommand({ id: 'compare-latest-version', name: 'Compare with Latest Version', icon: 'file-diff', callback: () => compareWithLatestVersion(this.app) });
        this.addCommand({ id: 'compare-specific-version', name: 'Compare with Specific Version...', icon: 'search', callback: () => compareWithSelectedVersion(this.app) });
@@ -86,9 +86,7 @@ export default class NoteMerger extends Plugin {
 
     async loadSettings() {
        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-       if (this.evidenceManager) {
-           this.evidenceManager.loadContext();
-       }
+       if (this.evidenceManager) this.evidenceManager.loadContext();
     }
 
     async saveSettings() {
