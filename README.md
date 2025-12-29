@@ -230,3 +230,125 @@ Developed by **narra**.
 ## 作者
 
 由 **miyuer** 开发。
+
+
+# J-251229-版本升级文档
+
+# Note Merger 版本更新记录
+
+**当前版本**: v1.1.0  
+**代号**: Writer's Cockpit (写手驾驶舱)  
+**发布时间**: 2025-12-29
+
+---
+
+## 🚀 [v1.1.0] - 重大更新：写手驾驶舱上线
+
+本次更新标志着 Note Merger 从单一的“笔记整理工具”进化为全方位的**“写作生产力系统”**。我们引入了全新的 **Writer's Cockpit (写手驾驶舱)** 模块，配合 Rime 输入法后端，实现了毫秒级的码字数据统计与可视化分析。
+
+### ✨ 新增功能 (New Features)
+
+#### 1. 📊 Writer's Cockpit (写手驾驶舱)
+新增基于 **React 18** + **Ant Design 5.x** + **G2Plot** 构建的独立数据看板：
+* **多维核心指标**:
+    * **⚡️ 即时速度**: 实时计算最近 1 分钟的打字速度（滑动窗口算法），即时反馈心流状态。
+    * **🚀 今日峰值**: 记录当天的最高手速（字/分），并在即时速度突破历史记录时自动修正。
+    * **⏳ 活跃时长**: 精确统计今日产生过打字的非重复分钟数。
+    * **📈 累计统计**: 包含今日总计、近1小时、近5天及年度总字数。
+* **专业可视化图表**:
+    * **速度趋势图 (双折线)**: 对比展示过去 14 天的“平均速度”与“峰值速度”走势。
+    * **今日节奏图 (分钟级柱状)**: 复盘今日写作节奏，支持横向滚动查看每一分钟的产出。
+    * **年度贡献图 (GitHub Style)**: 热力图直观展示全年打卡记录，Tooltip 支持显示具体日期。
+
+#### 2. 🔄 每日日记自动同步 (Daily Note Sync)
+* 插件后台实现 `FileSystemWatcher`，监听 Rime CSV 日志变化。
+* 打字时自动更新今日日记的 YAML (Frontmatter)，新增字段：
+    * `word_count`: 今日总字数
+    * `last_writes`: 最后一次打字时间戳
+* *注：若今日日记不存在，系统将静默跳过，不会报错。*
+
+#### 3. ⚙️ 动态配置
+* 设置页新增 **"Writer Cockpit"** 区域。
+* 支持自定义 **Rime Log CSV Path**（默认为 `00 信息/工具/RIME/rime_log.csv`）。
+* 修改路径配置后，Service 实例会自动热更新，无需重启插件。
+
+### 🛠️ 技术改进 (Technical Improvements)
+* **架构解耦**: 采用 DDD (领域驱动设计) 思想，将统计逻辑封装在 `StatsService` 中，UI 层 (`DashboardView`) 只负责渲染。
+* **构建升级**: `esbuild` 配置升级支持 `.tsx` 编译；项目 TypeScript 升级至最新版。
+* **类型修复**:
+    * 修复了 Obsidian 插件中 `moment` 命名空间调用的类型报错。
+    * 修复了 Ant Design `Divider` 组件 `orientation` 属性的类型兼容性问题。
+* **生产环境优化**: 移除了 SourceMap，减小了插件体积。
+
+---
+
+## 📝 升级指南
+
+1. **安装插件**: 替换最新的 `main.js`, `manifest.json`, `styles.css`。
+2. **配置 Rime**: 确保您的 Rime 输入法已挂载 `stats.lua` 脚本，且日志输出路径与插件设置中的路径一致。
+
+---
+
+# Peer Review Guide: Writer's Cockpit Feature
+
+## 📌 变更概述 (Overview)
+本 PR 引入了名为 **Writer's Cockpit** 的子模块。这是一个集成了数据监听、统计计算和 React UI 可视化的完整功能闭环。
+主要目的是通过读取 Rime 输入法生成的 CSV 日志，在 Obsidian 内展示写作数据并同步到 Daily Note。
+
+## 🏗️ 架构变动
+* **`src/writer-cockpit/`**: 新增目录，包含所有相关代码。
+    * `services/StatsService.ts`: 核心业务逻辑，负责解析 CSV、计算分钟级指标、写 YAML。
+    * `views/DashboardView.tsx`: 前端视图，使用 React + AntD + G2Plot。
+    * `types.ts`: 类型定义。
+* **`esbuild.config.mjs`**: 修改为支持 `.tsx` 编译。
+* **`package.json`**: 升级 `typescript` 依赖，新增 `react`, `antd`, `@ant-design/plots` 等依赖。
+
+## 🧪 测试环境准备 (Prerequisites)
+
+由于本功能依赖外部 CSV 文件，请 Reviewer 按以下步骤准备环境：
+
+1. **模拟数据源**:
+   在你的 Obsidian 仓库根目录下，创建一个测试用的 CSV 文件（路径：`00 信息/工具/RIME/rime_log.csv`），并填入以下模拟数据：
+   ```csv
+   2025-12-28 10:00:01, 50
+   2025-12-28 10:00:30, 30
+   2025-12-28 10:01:05, 100
+   2025-12-29 09:00:00, 20
+   ```
+
+构建项目:
+
+Bash
+
+npm install
+npm run build
+
+🔍 重点审查项 (Checklist)
+1. 功能验收
+[ ] 仪表盘渲染: 打开左侧侧边栏的“图表”图标，确认 React 视图能正确加载，无白屏。
+[ ] 图表交互:
+
+确认折线图 Tooltip 能显示单位（"xx 字/分"）。
+
+确认分钟级柱状图在数据较多时会出现横向滚动条。
+
+确认热力图 Tooltip 显示具体日期。
+
+[ ] 数据联动:
+
+手动修改上述 CSV 文件（增加一行），保存文件。
+
+观察仪表盘数字是否在 5 秒内自动刷新。
+
+观察“今日日记”的 Frontmatter 是否新增了 word_count 字段。
+
+2. 代码质量
+[ ] TypeScript 类型: 检查 src/writer-cockpit/types.ts 定义是否清晰。
+[ ] React Hooks: 检查 DashboardView.tsx 中的 useEffect 依赖项是否正确，定时器是否正确清除 (clearInterval)。
+[ ] 异常处理: 检查 StatsService 在 CSV 文件不存在或格式错误时，是否做到静默失败而不崩溃插件。
+
+3. 已知 Hack / 妥协
+TS 类型断言: 在 DashboardView.tsx 中，AntD 的 Divider 组件使用了 orientation={"left" as any}。这是由于 AntD 类型定义与新版 TS 的推断冲突导致的，暂时采用 any 绕过编译报错，不影响运行。
+
+🚀 部署建议
+此版本包含较大的 node_modules 变动（引入了 React 全家桶），生成的 main.js 体积会有所增加。建议在 Release 时使用 npm run build 进行生产环境压缩。
