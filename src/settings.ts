@@ -1,4 +1,4 @@
-import { ActiveContextState } from './evidence/types'; // 引入新定义
+import { ActiveContextState } from './evidence/types';
 
 export interface NoteMergerSettings {
     outputSuffix: string;
@@ -7,10 +7,13 @@ export interface NoteMergerSettings {
     ignoreYAML: boolean;
     mergeMode: 'clean' | 'append' | 'embed';
     contentBaseLevel: number;
-    
-    // ▼▼▼ 新增: Evidence Mapper 设置 ▼▼▼
+
+    // Evidence Mapper 设置
     lastActiveContext: ActiveContextState;
-    evidenceTriggerSymbol: string; // 默认 💡
+    evidenceTriggerSymbol: string;
+
+    // ▼▼▼ 新增：Rime 日志路径配置 ▼▼▼
+    rimeLogPath: string;
 }
 
 export const DEFAULT_SETTINGS: NoteMergerSettings = {
@@ -21,10 +24,12 @@ export const DEFAULT_SETTINGS: NoteMergerSettings = {
     contentBaseLevel: 0,
     mergeMode: 'append',
 
-    // ▼▼▼ 默认值 ▼▼▼
     lastActiveContext: {
         targetFilePath: null,
         targetHeading: null
     },
-    evidenceTriggerSymbol: '💡'
+    evidenceTriggerSymbol: '💡',
+
+    // ▼▼▼ 默认值 (保持你现在的路径) ▼▼▼
+    rimeLogPath: '00 信息/工具/RIME/rime_log.csv'
 }

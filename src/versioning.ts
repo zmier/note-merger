@@ -30,7 +30,7 @@ export async function createFileVersion(app: App): Promise<void> {
             }
 
             // 3. 生成文件名
-            const timestamp = moment().format('YYMMDD_HHmm');
+            const timestamp = (window as any).moment().format('YYMMDD_HHmm');
             // 过滤文件名中的非法字符
             const cleanTitle = remarkTitle ? `_${remarkTitle.replace(/[\\/:*?"<>|]/g, "")}` : "";
             const versionFileName = `${activeFile.basename}_V-${timestamp}${cleanTitle}.${activeFile.extension}`;
@@ -56,7 +56,7 @@ export async function createFileVersion(app: App): Promise<void> {
                     }
 
                     // B. 添加精确时间戳
-                    frontmatter['版本保存timestamp'] = moment().format('YYYY-MM-DD HH:mm:ss');
+                    frontmatter['版本保存timestamp'] = (window as any).moment().format('YYYY-MM-DD HH:mm:ss');
 
                     // C. 添加 Tags
                     const versionTag = '版本文档';

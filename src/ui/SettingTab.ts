@@ -92,5 +92,25 @@ export class NoteMergerSettingTab extends PluginSettingTab {
                 this.plugin.settings.separatorStyle = value;
                 await this.plugin.saveSettings();
              }));
+
+		// ▼▼▼ 新增：Writer Cockpit 设置区域 ▼▼▼
+       containerEl.createEl('h3', {text: 'Writer Cockpit (Rime Stats)'});
+
+       new Setting(containerEl)
+          .setName('Rime Log CSV Path')
+          .setDesc('The vault-relative path to your Rime log CSV file.')
+          .addText(text => text
+             .setPlaceholder('Example: 00 Journal/rime_log.csv')
+             .setValue(this.plugin.settings.rimeLogPath)
+             .onChange(async (value) => {
+                this.plugin.settings.rimeLogPath = value;
+
+                // 实时更新 Service 中的路径，无需重启插件
+                if (this.plugin.statsService) {
+                    this.plugin.statsService.csvPath = value;
+                }
+
+                await this.plugin.saveSettings();
+             }));
     }
 }

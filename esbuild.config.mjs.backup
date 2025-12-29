@@ -39,15 +39,6 @@ const context = await esbuild.context({
 	treeShaking: true,
 	outfile: "main.js",
 	minify: prod,
-	// ▼▼▼ 关键新增：React 支持 ▼▼▼
-    loader: {
-        '.tsx': 'tsx',
-        '.ts': 'ts',
-        '.css': 'css'
-    },
-    jsxFactory: 'React.createElement',
-    jsxFragment: 'React.Fragment',
-    // ▲▲▲ 新增结束 ▲▲▲
 });
 
 if (prod) {

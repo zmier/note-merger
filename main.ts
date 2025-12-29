@@ -1,4 +1,4 @@
-import { Plugin, Notice, MarkdownView } from 'obsidian';
+import { Plugin, Notice, MarkdownView, WorkspaceLeaf } from 'obsidian'; // 确保 WorkspaceLeaf 被导入
 import { NoteMergerSettingTab } from './src/ui/SettingTab';
 import { NoteMergerSettings, DEFAULT_SETTINGS } from './src/settings';
 import { mergeLinkedFiles } from './src/merger';
@@ -7,19 +7,51 @@ import { createFileVersion } from './src/versioning';
 import { compareWithLatestVersion, compareWithSelectedVersion, compareWithAnyFile } from './src/diff-view';
 import { MergeOptionsModal } from './src/ui/MergeOptionsModal';
 import { EvidenceManager } from './src/evidence/EvidenceManager';
-import { LensManager } from './src/lens-crafter/LensManager'; // ◀︎ 引入新模块
+import { LensManager } from './src/lens-crafter/LensManager';
+
+// ▼▼▼ Writer Cockpit 模块引入 ▼▼▼
+import { StatsService } from './src/writer-cockpit/services/StatsService';
+import { WriterCockpitView, VIEW_TYPE_WRITER_COCKPIT } from './src/writer-cockpit/views/DashboardView';
+// ▲▲▲ 引入结束 ▲▲▲
 
 export default class NoteMerger extends Plugin {
     settings: NoteMergerSettings;
     evidenceManager: EvidenceManager;
-    lensManager: LensManager; // ◀︎ 持有实例
+    lensManager: LensManager;
+
+    // 🚨 【修复关键点】: 必须在这里声明 statsService 属性，否则 TS 会报错
+    statsService: StatsService;
 
     async onload() {
        await this.loadSettings();
 
+       // --- 0. Init Stats Service (Writer Cockpit) ---
+       // 【修改】从设置中读取路径，而不是硬编码
+       this.statsService = new StatsService(this.app, this.settings.rimeLogPath);
+
+       // --- Register View ---
+       this.registerView(
+           VIEW_TYPE_WRITER_COCKPIT,
+           (leaf) => new WriterCockpitView(leaf, this.statsService)
+       );
+
+       // --- Add Ribbon Icon ---
+       this.addRibbonIcon('bar-chart', 'Open Writer Cockpit', () => {
+           this.activateCockpitView();
+       });
+
+       // --- Setup CSV Watcher (Daemon) ---
+       this.registerEvent(this.app.vault.on('modify', async (file) => {
+           // 【修改】动态对比当前设置的路径
+           if (file.path === this.settings.rimeLogPath) {
+               // console.log("[WriterCockpit] CSV detected change, syncing...");
+               await this.statsService.syncToDailyNote();
+           }
+       }));
+
        // --- Init Managers ---
        this.evidenceManager = new EvidenceManager(this.app, this.settings, this.saveSettings.bind(this));
-       this.lensManager = new LensManager(this.app); // ◀︎ 初始化
+       this.lensManager = new LensManager(this.app);
 
        // --- UI Setup ---
        const statusBarItem = this.addStatusBarItem();
@@ -29,11 +61,11 @@ export default class NoteMerger extends Plugin {
            this.evidenceManager.quickCapture(true);
        });
 
-       // --- 1. Lens Crafter Commands (新功能) ---
+       // --- 1. Lens Crafter Commands ---
        this.addCommand({
            id: 'create-project-lens',
            name: 'Create Project Lens Note (Context-Aware)',
-           icon: 'glasses', // 给它一个眼镜图标 👓
+           icon: 'glasses',
            callback: () => {
                this.lensManager.triggerLensCreation();
            }
@@ -86,10 +118,35 @@ export default class NoteMerger extends Plugin {
 
     async loadSettings() {
        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+       // 这里加个非空判断，防止插件刚加载还没初始化 manager 时出错
        if (this.evidenceManager) this.evidenceManager.loadContext();
     }
 
     async saveSettings() {
        await this.saveData(this.settings);
+    }
+
+    // 打开视图的辅助函数
+    async activateCockpitView() {
+        const { workspace } = this.app;
+
+        let leaf: WorkspaceLeaf | null = null;
+        const leaves = workspace.getLeavesOfType(VIEW_TYPE_WRITER_COCKPIT);
+
+        if (leaves.length > 0) {
+            // 如果已经打开，就聚焦
+            leaf = leaves[0];
+        } else {
+            // 否则在右侧侧边栏打开 (split: false 表示不拆分主区域，而是侧边)
+            // 如果想在主区域打开新标签页，可以用 workspace.getLeaf(true)
+            leaf = workspace.getRightLeaf(false);
+            if (leaf) {
+                await leaf.setViewState({ type: VIEW_TYPE_WRITER_COCKPIT, active: true });
+            }
+        }
+
+        if (leaf) {
+            workspace.revealLeaf(leaf);
+        }
     }
 }
