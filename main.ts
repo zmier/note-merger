@@ -14,6 +14,8 @@ import { StatsService } from './src/writer-cockpit/services/StatsService';
 import { WriterCockpitView, VIEW_TYPE_WRITER_COCKPIT } from './src/writer-cockpit/views/DashboardView';
 // ▲▲▲ 引入结束 ▲▲▲
 
+import { TableToExcelManager } from './src/table-tool/TableToExcelManager';
+
 export default class NoteMerger extends Plugin {
     settings: NoteMergerSettings;
     evidenceManager: EvidenceManager;
@@ -21,6 +23,9 @@ export default class NoteMerger extends Plugin {
 
     // 🚨 【修复关键点】: 必须在这里声明 statsService 属性，否则 TS 会报错
     statsService: StatsService;
+
+	// ▼▼▼ 新属性 ▼▼▼
+    tableManager: TableToExcelManager;
 
     async onload() {
        await this.loadSettings();
@@ -48,6 +53,30 @@ export default class NoteMerger extends Plugin {
                await this.statsService.syncToDailyNote();
            }
        }));
+
+	   // --- Init Table Tool ---
+       // ▼▼▼ 初始化表格工具 ▼▼▼
+       this.tableManager = new TableToExcelManager(this.app);
+
+       // 注册事件监听：光标移动或文本变更时检查表格
+       // 1. 用户点击或移动光标
+       this.registerDomEvent(document, 'click', () => this.tableManager.checkTable());
+       this.registerDomEvent(document, 'keyup', () => this.tableManager.checkTable());
+
+       // 2. 编辑器内容更新 (这个其实包含在 keyup 里，但为了保险可以加上)
+       // 注意：obsidian 的 editor-change 事件可能触发太频繁，我们在 Manager 里做了 debounce
+       this.registerEvent(this.app.workspace.on('editor-change', () => {
+           this.tableManager.checkTable();
+       }));
+
+       // 3. 切换文件时
+       this.registerEvent(this.app.workspace.on('active-leaf-change', () => {
+           // 切换文件时先隐藏按钮，再尝试检查
+           this.tableManager.hideButton();
+           // 稍微延迟一下等待视图渲染
+           setTimeout(() => this.tableManager.checkTable(), 200);
+       }));
+       // ▲▲▲ 初始化结束 ▲▲▲
 
        // --- Init Managers ---
        this.evidenceManager = new EvidenceManager(this.app, this.settings, this.saveSettings.bind(this));

@@ -43,3 +43,40 @@ If your plugin does not need CSS, delete this file.
     font-weight: bold;
     color: var(--text-accent);
 }
+
+/* file: styles.css */
+
+.obsidian-table-export-btn {
+    position: absolute;
+    z-index: 1000;
+    padding: 4px 8px;
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    opacity: 0;
+    pointer-events: none; /* 默认不响应，显示时开启 */
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: bold;
+}
+
+.obsidian-table-export-btn.visible {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateY(0);
+}
+
+.obsidian-table-export-btn:hover {
+    background-color: var(--interactive-accent-hover);
+}
+
+.obsidian-table-export-btn .icon {
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+}

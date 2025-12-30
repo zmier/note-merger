@@ -352,3 +352,57 @@ TS 类型断言: 在 DashboardView.tsx 中，AntD 的 Divider 组件使用了 or
 
 🚀 部署建议
 此版本包含较大的 node_modules 变动（引入了 React 全家桶），生成的 main.js 体积会有所增加。建议在 Release 时使用 npm run build 进行生产环境压缩。
+
+# J-251230-版本升级文档
+
+# Note Merger 版本更新记录
+
+**当前版本**: v1.2.0
+**代号**: Data Bridge (数据桥梁)
+**发布时间**: 2025-12-30
+
+---
+
+## 🚀 [v1.2.0] - 新增功能：Markdown 表格一键导出 Excel
+
+本次更新专注于**数据互通性**。我们解决了一个长期困扰 Obsidian 用户的痛点：将 Markdown 表格复制到 Excel/Numbers/Google Sheets 时，格式往往会乱掉（所有内容挤在同一列）。
+v1.2.0 引入了智能悬浮工具，实现了“零配置、一键式”的完美表格迁移。
+
+### ✨ 新增功能 (New Features)
+
+#### 1. 📋 智能表格导出 (Table to Excel)
+* **上下文感知悬浮按钮**: 当光标移动到任意 Markdown 表格区域内时，插件会自动识别表格边界，并在表格右上方浮现 **"Copy to Excel"** 按钮。
+* **一键格式转换**:
+    * 自动去除 Markdown 表格的语法符号（如 `|`, `|---|`）。
+    * 将管道符分隔 (`|`) 智能转换为制表符分隔 (`Tab`)，这是 Excel 识别列的标准。
+    * 自动过滤掉 Markdown 的表头分割线（Separators），确保粘贴后的数据纯净。
+* **非侵入式设计**: 按钮仅在需要时出现，光标离开表格区域后自动隐藏，不干扰正常写作。
+
+### 🛠️ 体验优化 (UX Improvements)
+* **性能优化**: 针对光标移动事件 (`keyup`, `click`) 增加了**防抖 (Debounce)** 处理，确保在快速打字或移动光标时不会造成界面卡顿。
+* **视觉反馈**: 点击复制后，系统会弹出 Notice 提示“已复制到剪贴板”，按钮会自动隐藏，提供流畅的操作确认感。
+
+---
+
+## 📝 升级指南
+
+1.  **安装插件**: 替换最新的 `main.js`, `manifest.json`，并**务必添加/更新 `styles.css`**（新增了悬浮按钮样式）。
+2.  **验证**: 打开任意包含表格的笔记，将光标置于表格内，确认是否出现蓝色悬浮按钮。
+
+---
+
+# Peer Review Guide: Table Tool Feature
+
+## 📌 变更概述 (Overview)
+本 PR 引入了 `TableToExcelManager` 模块。这是一个轻量级的 UI 交互功能，旨在解决 Markdown 表格直接粘贴到 Excel 格式错乱的问题。
+核心逻辑是监听编辑器光标位置，通过 Regex 探测表格上下文，并将选定的 Markdown 表格内容转换为 TSV (Tab-Separated Values) 格式写入系统剪贴板。
+
+## 🏗️ 架构变动
+* **`src/table-tool/`**: 新增目录。
+    * `TableToExcelManager.ts`: 核心逻辑类。负责 DOM 元素创建、事件监听、坐标计算 (`coordsAtPos`) 以及格式转换逻辑。
+* **`styles.css`**: 新增 `.obsidian-table-export-btn` 相关样式，处理绝对定位和显隐动画。
+* **`main.ts`**:
+    * 引入 `TableToExcelManager`。
+    * 在 `onload` 中注册 DOM 事件监听 (`click`, `keyup`) 和 Workspace 事件。
+    * 在 `onunload` 中调用 `unload()` 清理 DOM 残留。
+
