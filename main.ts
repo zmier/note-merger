@@ -14,6 +14,9 @@ import { StatsService } from './src/writer-cockpit/services/StatsService';
 import { WriterCockpitView, VIEW_TYPE_WRITER_COCKPIT } from './src/writer-cockpit/views/DashboardView';
 // ▲▲▲ 引入结束 ▲▲▲
 
+// 【新增】引入 App Loader
+import { ObHtmlView, VIEW_TYPE_OBHTML } from './src/obhtml-loader/ObHtmlView';
+
 import { TableToExcelManager } from './src/table-tool/TableToExcelManager';
 
 export default class NoteMerger extends Plugin {
@@ -54,7 +57,27 @@ export default class NoteMerger extends Plugin {
            }
        }));
 
-	   // --- Init Table Tool ---
+		// ============================================
+        // 🚀 注册新功能：ObHtml App Loader
+        // ============================================
+
+        // 1. 注册视图
+        this.registerView(
+            VIEW_TYPE_OBHTML,
+            (leaf) => new ObHtmlView(leaf)
+        );
+
+        // 2. 注册文件后缀 .obhtml
+        try {
+            this.registerExtensions(['obhtml'], VIEW_TYPE_OBHTML);
+        } catch (error) {
+            console.log("OBHTML extension might be already registered by another plugin.");
+        }
+
+        console.log("🔪 Swiss Army Knife: ObHtml Loader Module Armed.");
+
+
+		// --- Init Table Tool ---
        // ▼▼▼ 初始化表格工具 ▼▼▼
        this.tableManager = new TableToExcelManager(this.app);
 
