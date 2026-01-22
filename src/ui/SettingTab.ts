@@ -112,5 +112,30 @@ export class NoteMergerSettingTab extends PluginSettingTab {
 
                 await this.plugin.saveSettings();
              }));
+
+       // ▼▼▼ 新增：UI 增强设置 ▼▼▼
+       containerEl.createEl('h3', {text: 'UI Enhancements'});
+
+       new Setting(containerEl)
+          .setName('Enable Scrollbar Markers')
+          .setDesc('Show colored dots on the right scrollbar for callouts like > [!T] or > [!Q].')
+          .addToggle(toggle => toggle
+             .setValue(this.plugin.settings.enableScrollbarMarkers)
+             .onChange(async (value) => {
+                this.plugin.settings.enableScrollbarMarkers = value;
+                await this.plugin.saveSettings();
+                // 提示用户重启生效或重新打开文件
+                // 实际代码中我们可以调用 manager.reload()，这里简单处理
+             }));
+
+       new Setting(containerEl)
+          .setName('Smart Tab Reuse')
+          .setDesc('Clicking a file in explorer jumps to an already open tab instead of opening a new one.')
+          .addToggle(toggle => toggle
+             .setValue(this.plugin.settings.enableTabReuse)
+             .onChange(async (value) => {
+                this.plugin.settings.enableTabReuse = value;
+                await this.plugin.saveSettings();
+             }));
     }
 }

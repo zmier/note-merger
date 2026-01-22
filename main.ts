@@ -1,4 +1,4 @@
-import { Plugin, Notice, MarkdownView, WorkspaceLeaf } from 'obsidian'; // 确保 WorkspaceLeaf 被导入
+import { Plugin, Notice, MarkdownView, WorkspaceLeaf, debounce } from 'obsidian'; // 确保 WorkspaceLeaf 被导入
 import { NoteMergerSettingTab } from './src/ui/SettingTab';
 import { NoteMergerSettings, DEFAULT_SETTINGS } from './src/settings';
 import { mergeLinkedFiles } from './src/merger';
@@ -18,6 +18,8 @@ import { WriterCockpitView, VIEW_TYPE_WRITER_COCKPIT } from './src/writer-cockpi
 import { ObHtmlView, VIEW_TYPE_OBHTML } from './src/obhtml-loader/ObHtmlView';
 
 import { TableToExcelManager } from './src/table-tool/TableToExcelManager';
+import { ScrollbarMarkerManager } from './src/marker/ScrollbarMarkerManager';
+import { TabReuseManager } from './src/tab-manager/TabReuseManager';
 
 export default class NoteMerger extends Plugin {
     settings: NoteMergerSettings;
@@ -29,6 +31,8 @@ export default class NoteMerger extends Plugin {
 
 	// ▼▼▼ 新属性 ▼▼▼
     tableManager: TableToExcelManager;
+    markerManager: ScrollbarMarkerManager;
+    tabReuseManager: TabReuseManager;
 
     async onload() {
        await this.loadSettings();
@@ -164,6 +168,52 @@ export default class NoteMerger extends Plugin {
        this.addCommand({ id: 'promote-headings-in-selection', name: 'Promote Headings in Selection', icon: 'arrow-up', editorCallback: (editor) => adjustHeadingLevel(editor, -1) });
 
        this.addSettingTab(new NoteMergerSettingTab(this.app, this));
+
+        // ============================================
+        // 🎨 1. 初始化 Scrollbar Marker
+        // ============================================
+        this.markerManager = new ScrollbarMarkerManager(this.app, this.settings);
+
+        // 事件 A: 打开新文件时，延迟计算并渲染
+        this.registerEvent(this.app.workspace.on('file-open', () => {
+             // 稍微延迟确保 DOM 渲染完毕
+             setTimeout(() => this.markerManager.refreshActiveLeaf(), 300);
+        }));
+
+        // 事件 B: 编辑器内容变化时，防抖更新
+        const debouncedUpdate = debounce((view: MarkdownView) => {
+            this.markerManager.updateMarkers(view);
+        }, 500, true);
+
+        this.registerEvent(this.app.workspace.on('editor-change', (editor, info) => {
+            // 需要找到对应的 view
+            const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+            if (view && view.editor === editor) {
+                debouncedUpdate(view);
+            }
+        }));
+        
+        // 事件 C: 布局改变（窗口调整大小）时刷新
+        this.registerEvent(this.app.workspace.on('resize', () => {
+             this.markerManager.refreshActiveLeaf();
+        }));
+
+
+        // ============================================
+        // 📑 2. 初始化 Tab Reuse
+        // ============================================
+        this.tabReuseManager = new TabReuseManager(this.app, this.settings);
+
+        // 使用 DOM 捕获阶段监听 (capture: true)
+        // 这样我们可以在 Obsidian 内部逻辑处理之前拦截点击
+        this.registerDomEvent(
+            document, 
+            'click', 
+            this.tabReuseManager.handleFileClick, 
+            { capture: true }
+        );
+
+        console.log("🚀 Enhancements: Scrollbar Markers & Smart Tab loaded.");
     }
 
     onunload() {}
