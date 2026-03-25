@@ -20,6 +20,7 @@ import { ObHtmlView, VIEW_TYPE_OBHTML } from './src/obhtml-loader/ObHtmlView';
 import { TableToExcelManager } from './src/table-tool/TableToExcelManager';
 import { ScrollbarMarkerManager } from './src/marker/ScrollbarMarkerManager';
 import { TabReuseManager } from './src/tab-manager/TabReuseManager';
+import { CriticMarkupManager } from './src/criticmarkup/CriticMarkupManager';
 
 export default class NoteMerger extends Plugin {
     settings: NoteMergerSettings;
@@ -33,6 +34,7 @@ export default class NoteMerger extends Plugin {
     tableManager: TableToExcelManager;
     markerManager: ScrollbarMarkerManager;
     tabReuseManager: TabReuseManager;
+    criticMarkupManager: CriticMarkupManager;
 
     async onload() {
        await this.loadSettings();
@@ -108,6 +110,8 @@ export default class NoteMerger extends Plugin {
        // --- Init Managers ---
        this.evidenceManager = new EvidenceManager(this.app, this.settings, this.saveSettings.bind(this));
        this.lensManager = new LensManager(this.app);
+       this.criticMarkupManager = new CriticMarkupManager(this);
+       this.criticMarkupManager.register();
 
        // --- UI Setup ---
        const statusBarItem = this.addStatusBarItem();

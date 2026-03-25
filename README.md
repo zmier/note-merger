@@ -1,430 +1,299 @@
+# Note Merger
 
-# Note Merger for Obsidian
+An Obsidian writing workflow toolkit for merging notes, capturing evidence, visualizing CriticMarkup, tracking writing stats, and speeding up everyday navigation.
 
-A powerful plugin for Obsidian users who leverage the Map of Content (MOC) or Zettelkasten methodologies. It allows you to instantly compile all notes linked from an active file into a single, cohesive document. Consolidate scattered thoughts, compile research, or export your writing projects with a single command.
+当前版本：`1.4.0`  
+最低 Obsidian 版本：`1.5.11`
 
------
+## Overview
 
-## Features
+`Note Merger` 最初是一个“合并链接笔记”的插件，但现在已经扩展成一套围绕写作与研究整理的工具箱。它适合下面这些场景：
 
-  - **Merge from Wikilinks**: Intelligently parses the active note and finds all `[[wikilinks]]` to other markdown files.
-  - **Automatic Title Generation**: Each merged note's content is automatically prefixed with a customizable heading that links back to the original source note (e.g., `## [[Source Note]]`).
-  - **Highly Customizable Output**: Control the final document's structure through the settings panel:
-      - Customize the output filename suffix (e.g., `_merged`, `-compiled`).
-      - Choose the heading level (H1 to H6) for each merged section.
-      - Define your own markdown separator (`---`, `***`, etc.).
-  - **Unique Link Handling**: Automatically handles duplicate links, ensuring each note's content is included only once.
-  - **Simple Workflow**: Activate the merge process with a single command from the Obsidian command palette.
+- 用 MOC 或大纲笔记把多个子文档一键组装成正文
+- 阅读资料时把证据、摘录和注释快速归档到课题笔记
+- 在 Obsidian 里直接可视化 CriticMarkup 审稿标记
+- 在大改之前做快照备份，并和历史版本对比
+- 基于 Rime 日志追踪写作节奏、速度和累计字数
+- 优化 Obsidian 中的导航、表格导出和轻量应用嵌入
 
-## How to Use (Workflow)
+## Core Features
 
-1.  **Create your "Map"**: Open or create a central note (your MOC) that contains `[[wikilinks]]` to all the other notes you wish to combine. The order of the links in this file will determine the order of the content in the final merged document.
-2.  **Run the Command**: While the MOC file is active, open the Command Palette (`Cmd+P` or `Ctrl+P`) and run the command **"Merge Linked Notes"**.
-3.  **Find Your File**: A new file, named `[Your-MOC-Name]_merged.md` (or with your custom suffix), will be instantly created in the same folder, containing all the compiled content.
+### 1. Merge linked notes
+
+以当前笔记为入口，解析其中的 `[[wikilinks]]`，按出现顺序合并被链接的 Markdown 文件。
+
+支持三种合并模式：
+
+- `Clean`: 仅输出子文档内容
+- `Append`: 保留当前文档，再将子文档追加到底部
+- `Embed`: 在当前文档中把链接原位替换成对应正文
+
+额外支持：
+
+- 忽略被合并笔记顶部 YAML Frontmatter
+- 自动为每个子文档生成包装标题，如 `## [[Source Note]]`
+- 自动下调子文档内部标题层级，适配总纲结构
+- 只合并以 `@` 开头的文献笔记
+- 额外生成一个 `_sublists.md` 文件，列出本次参与合并的子文档链接
+
+### 2. Evidence Mapper
+
+在阅读或写作时选中文字，直接将其归档到目标课题笔记的指定标题下。
+
+工作方式：
+
+- 记住当前“目标文件 + 目标标题”上下文
+- 首次使用或手动切换时，先选课题笔记，再选论点标题
+- 自动为源文本补上 Block ID，保证回链稳定
+- 单行摘录采用 `![[Source#^block]]` 的方式嵌入
+- 多行摘录自动转成引用块，并附带跳回源文的链接
+- 状态栏会显示当前捕获上下文，点击即可快速切换
+
+### 3. Version snapshots and diff
+
+为当前笔记创建带时间戳和备注的版本副本，并存入同目录下的 `[笔记名]-版本` 文件夹。
+
+同时提供三个对比命令：
+
+- 与最新版本对比
+- 与指定历史版本对比
+- 与库中任意 Markdown 文件对比
+
+### 4. Lens Crafter
+
+面向项目写作与文献整理的“透镜笔记”生成器。
+
+它会根据当前上下文进行引导：
+
+- 当你在 `02 Sources/Papers` 下工作时，先选项目
+- 当你在 `03 Projects` 下工作时，先选文献
+- 如果没有上下文，就走双选流程
+
+生成结果：
+
+- 目标路径：`03 Projects/<Project>/30 Literature Notes/`
+- 文件名：`<Literature>_Lens.md`
+- 模板结构：`Phenomenon / Mechanism / Significance`
+
+### 5. CriticMarkup visualization
+
+插件现在支持在 Obsidian 中可视化展示 CriticMarkup 审稿语法。
+
+当前支持：
+
+- `{++新增++}` addition
+- `{--删除--}` deletion
+- `{~~原文~>改文~~}` substitution
+- `{==高亮==}` highlight
+- `{>>批注<<}` comment
+
+展示方式：
+
+- 阅读视图中将原始语法渲染为语义化彩色标记
+- Live Preview 中将标记折叠为可视化标签
+- 点击 Live Preview 中的标记，可回到原始语法继续编辑
+- 自动跳过代码块、行内代码、脚本和样式节点
+
+视觉风格：
+
+- 新增：柔和绿色
+- 删除：柔和红色加删除线
+- 替换：删除态与新增态并置
+- 高亮：低饱和黄色
+- 批注：低饱和紫色胶囊
+
+### 6. Writer's Cockpit
+
+读取 Rime 生成的 CSV 日志，构建一个独立的写作统计仪表盘。
+
+当前统计包括：
+
+- 今日总计
+- 近 1 小时字数
+- 近 5 天字数
+- 近 30 天字数
+- 年度累计
+- 近 1 分钟即时速度
+- 今日均速
+- 今日峰值
+- 今日活跃分钟数
+- 过去 14 天速度趋势
+- 今日分钟级节奏图
+- 全年热力图
+
+联动能力：
+
+- 监听 Rime CSV 文件变动
+- 自动将 `word_count` 和 `last_writes` 回写到 `00 Journal/YYYY-MM-DD.md` 的 Frontmatter
+
+默认日志路径：
+
+- `00 信息/工具/RIME/rime_log.csv`
+
+### 7. ObHtml local app loader
+
+插件为 `.obhtml` 文件注册了自定义视图，可把库内 HTML 文件作为轻量本地应用打开。
+
+支持：
+
+- 相对路径与 `../` 资源解析
+- 本地 CSS 隔离注入
+- 本地 JS 执行
+- 本地图像资源重写
+- 在脚本中访问 `app`、`container`、`MarkdownRenderer`
+- 若已安装 Dataview，可直接使用 `dv`
+
+这很适合在 Obsidian 里做项目看板、数据面板或实验性小工具。
+
+### 8. Workflow extras
+
+除了主功能外，插件还附带了一组日常增强工具：
+
+- Markdown 表格光标内自动显示 `Copy to Excel` 悬浮按钮
+- 点击文件浏览器中的已打开笔记时，自动复用已有标签页
+- 在编辑器滚动条区域标记 `> [!T]`、`> [!Q]` 等 callout 位置
+- 为选中内容批量升级或降级标题层级
+
+## Commands
+
+以下命令会出现在 Obsidian 命令面板中：
+
+- `Create Project Lens Note (Context-Aware)`
+- `Quick Capture Evidence (Context-Aware)`
+- `Redirect Capture Evidence (Change Topic)`
+- `Merge Linked Notes`
+- `Create Version (Snapshot)`
+- `Compare with Latest Version`
+- `Compare with Specific Version...`
+- `Compare with Any File...`
+- `Demote Headings in Selection`
+- `Promote Headings in Selection`
+
+此外，左侧功能区会出现一个 `bar-chart` 图标，用于打开 `Writer's Cockpit`。
+
+## Settings
+
+插件设置页当前包含以下主要选项：
+
+### Merge settings
+
+- `Output file suffix`
+- `Merge Mode`
+- `Ignore YAML Frontmatter`
+- `Demote Content Headings`
+- `Wrapper Heading Level`
+- `Content separator`
+
+### Writer's Cockpit
+
+- `Rime Log CSV Path`
+
+### UI enhancements
+
+- `Enable Scrollbar Markers`
+- `Smart Tab Reuse`
+
+## Recommended workflows
+
+### MOC to draft
+
+1. 建一个 MOC 或大纲笔记
+2. 用 `[[链接]]` 排好子文档顺序
+3. 运行 `Merge Linked Notes`
+4. 选择 `Clean`、`Append` 或 `Embed`
+5. 在生成稿上继续写作或导出
+
+### Reading to evidence note
+
+1. 在源笔记中选中文字
+2. 运行 `Quick Capture Evidence (Context-Aware)`
+3. 选择课题笔记和目标标题
+4. 输入简短注释
+5. 插件自动把摘录归档到目标位置
+
+### CriticMarkup review
+
+1. 在文稿中使用标准 CriticMarkup 语法写审稿意见
+2. 切到阅读视图查看可视化效果
+3. 若需要继续改原始标记，在 Live Preview 中点击对应标签
+4. 在 Obsidian 内直接完成审稿、返修与复核
+
+### Project and literature linking
+
+1. 打开项目笔记或文献笔记
+2. 运行 `Create Project Lens Note (Context-Aware)`
+3. 让插件自动建立对应的透镜笔记
+4. 在 Lens 中填写案例、机制与意义
 
 ## Installation
 
-### From Community Plugins (Coming Soon)
+### Manual install
 
-Once this plugin is accepted into the official community plugin store:
+将以下文件放入你的 vault 目录：
 
-1.  Go to `Settings` -\> `Community plugins`.
-2.  Make sure "Safe mode" is **off**.
-3.  Click `Browse` community plugins.
-4.  Search for "Note Merger".
-5.  Click `Install`, then `Enable`.
+```text
+.obsidian/plugins/note-merger/
+```
 
-### Manual Installation (For Now)
+至少需要：
 
-1.  Go to the [latest release](https://www.google.com/search?q=https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME/releases/latest) on the GitHub repository.
-2.  Download the three files: `main.js`, `manifest.json`, and `styles.css`.
-3.  In your Obsidian vault, navigate to the `.obsidian/plugins/` directory.
-4.  Create a new folder named `note-merger`.
-5.  Copy and paste the three downloaded files into this new `note-merger` folder.
-6.  Restart Obsidian or reload the app (`Cmd/Ctrl + R`).
-7.  Go to `Settings` -\> `Community plugins` and enable "Note Merger".
+- `main.js`
+- `manifest.json`
+- `styles.css`
 
-## Configuration
+然后在 Obsidian 中：
 
-Navigate to `Settings` -\> `Community plugins` -\> `Note Merger` to configure the following options:
+1. 打开 **Settings → Community plugins**
+2. 启用 `Note Merger`
 
-  - **Output file suffix**: The text appended to the original filename to create the merged file. Defaults to `_merged`.
-  - **Heading level**: The markdown heading level (`#` to `######`) used for the title of each merged note section. Defaults to `H2 (##)`.
-  - **Content separator**: The markdown used to separate the content of one note from the next. Defaults to `---`.
+### From source
 
-## For Developers (Contributing)
+如果你正在本地开发这个插件：
 
-This plugin is built with TypeScript and ❤️. If you'd like to contribute:
+```bash
+npm install
+npm run dev
+```
 
-1.  Clone this repository.
-2.  Run `npm install` to install dependencies.
-3.  Run `npm run dev` to start compilation in watch mode.
+生产构建：
+
+```bash
+npm run build
+```
+
+## Development notes
+
+- 入口文件：`main.ts`
+- 主要源码目录：`src/`
+- 构建工具：`esbuild`
+- 语言：TypeScript
+- UI 依赖：React、Ant Design、@ant-design/plots
+
+主要模块分布：
+
+- `src/merger.ts`
+- `src/evidence/`
+- `src/lens-crafter/`
+- `src/writer-cockpit/`
+- `src/obhtml-loader/`
+- `src/table-tool/`
+- `src/marker/`
+- `src/tab-manager/`
+
+## Privacy and behavior
+
+这个插件默认在本地工作，不依赖在线服务。当前功能主要读写 Obsidian 库内文件与本地界面状态，不包含远程遥测逻辑。
+
+## Archive
+
+历史 README 已归档到：
+
+- `归档/README_v20260324.md`
 
 ## License
 
-Released under the [MIT License](https://www.google.com/search?q=LICENSE).
+MIT
 
 ## Author
 
-Developed by **narra**.
-
------
-
------
-
-# Note Merger for Obsidian (中文说明)
-
-这是一款强大的 Obsidian 插件，专为使用“内容地图 (MOC)”或“卡片盒笔记法”的用户设计。它不仅能简单合并文档，还能像“组装工厂”一样，根据你的需求将分散的笔记组装成一篇完整的文章。
-
-## 核心功能
-
-- **三种灵活的合并模式**:
-    
-    - **纯净模式 (Clean)**: 生成的新文件仅包含被链接笔记的内容。
-        
-    - **追加模式 (Append)**: 保留当前 MOC 笔记的原文，并将被链接笔记的内容追加到底部。
-        
-    - **嵌入模式 (Embed)**: **[特色功能]** 生成的新文件中，原笔记内的 `[[双向链接]]` 会被**原位替换**为该笔记的实际正文内容。这使得你可以用 MOC 写大纲，然后一键生成长文。
-        
-- **证据收集 (Evidence Mapper - 新功能!)**:
-    
-    - **上下文感知收集**: 在阅读时选中文字，一键归档到指定的“课题笔记”和“标题”下，自动生成双向链接，极大提升研究效率。
-        
-    - **自动 Block-ID**: 自动为选中的源文本生成块引用 ID，确保引用精准稳定。
-        
-    - **智能格式化**: 自动识别多行文本，并将其格式化为引用块 (Blockquote)。
-        
-- **版本快照 (Version Control)**: 一键为当前笔记创建带时间戳的备份副本（如 `MyNote_V-251121_1430.md`），自动归档到专属的 `[笔记名]-版本` 文件夹中，让你的写作更有安全感。
-    
-- **智能内容处理**:
-    
-    - **过滤 YAML**: 可选是否移除被合并笔记顶部的 YAML 属性块 (Frontmatter)，保持文档整洁。
-        
-    - **标题自动降级**: 自动调整被合并内容的标题级别。例如，你可以设定被合并的内容从 H3 开始，插件会自动将原文档的 H1 降级为 H3，H2 降级为 H4，从而完美适配你的大纲层级。
-        
-- **标题管理命令**: 插件附带了两个实用的编辑器命令，可批量调整选中文字中的标题级别（一键升级或降级），写作时调整结构非常方便。
-    
-- **自动生成包装标题**: 每个合并区块前自动添加指向源笔记的标题，方便溯源。
-    
-
-## 如何使用
-
-### 合并笔记
-
-1. **创建你的“地图”**: 打开或创建一个核心笔记（MOC），在其中用 `[[双向链接]]` 的形式链接其他笔记。
-    
-2. **运行命令**: 打开命令面板 (`Cmd+P` 或 `Ctrl+P`)，搜索并运行 **"Merge Linked Notes"**。
-    
-3. **查看结果**: 插件会在当前目录下生成一个新的合并文档 (如 `笔记名_merged.md`)。
-    
-
-### 收集证据 (Evidence Mapper)
-
-通过上下文感知的收集系统，在不打断阅读心流的情况下，将证据直接归档到你的课题笔记中。
-
-1. **选中文字**: 在任意笔记中选中你想要收集的文本。
-    
-2. **极速收集**: 运行命令 **"Quick Capture Evidence (Context-Aware)"**。
-    
-    - **首次使用 (冷启动)**: 插件会提示你选择 **目标课题 (Target Topic)** 和 **目标论点 (Target Claim)**。
-        
-    - **后续使用 (热启动)**: 插件会记住当前的上下文。它将跳过选择步骤，直接提示你输入语境笔记。
-        
-3. **更改目标**: 如果需要保存到其他位置，运行 **"Redirect Capture Evidence"** 或点击底部的状态栏图标（如 `🎯 我的课题 > 导言`）。
-    
-4. **结果**: 选中的文本会自动生成块引用 ID，并在目标笔记的指定标题下生成一条带有跳转链接的引用。
-    
-
-### 创建版本快照 (后悔药)
-
-在进行大改之前，快速备份你的工作：
-
-1. 打开你正在编辑的笔记。
-    
-2. 运行命令 **"Create Version (Snapshot)"**。
-    
-3. 插件会在当前目录下自动创建一个名为 `[笔记名]-版本` 的文件夹（如果不存在），并在其中保存一份当前笔记的副本，文件名包含日期和时间。
-    
-
-### 调整标题 (辅助工具)
-
-在任何文档的编辑模式下：
-
-1. 选中包含标题的一段文本。
-    
-2. 运行 **"Demote Headings in Selection"**：选中区域内所有标题降一级 (增加一个 #)。
-    
-3. 运行 **"Promote Headings in Selection"**：选中区域内所有标题升一级 (减少一个 #)。
-    
-
-## 插件配置
-
-进入 `设置` -> `第三方插件` -> `Note Merger`：
-
-### 基础设置
-
-- **输出文件后缀 (Output file suffix)**: 生成文件的后缀名 (默认 `_merged`)。
-    
-- **合并模式 (Merge Mode)**:
-    
-    - `Clean`: 仅包含合并后的子文档内容。
-        
-    - `Append`: 父文档内容 + 子文档内容。
-        
-    - `Embed`: 父文档内容，但其中的链接被子文档内容替换。
-        
-- **内容分隔符**: 笔记之间的分隔符 (仅在 Clean/Append 模式下有效)。
-    
-
-### 内容处理
-
-- **忽略 YAML (Ignore YAML)**: 是否移除合并内容的元数据块。
-    
-- **内容标题降级 (Demote Content Headings)**: 设定被合并内容的**起始标题级别**。
-    
-    - _例如_: 设为 "Start at H3"，则子文档里的一级标题 (`#`) 会自动变成三级标题 (`###`)。
-        
-- **包装标题级别 (Wrapper Heading Level)**: 插件自动生成的、包裹每个子文档内容的标题级别 (如 `## [[子文档名]]`)。
-## 安装方法
-
-### 从社区插件市场安装 (即将上线)
-
-一旦此插件被官方社区插件市场收录：
-
-1.  进入 `设置` -\> `第三方插件`。
-2.  确保“安全模式”已**关闭**。
-3.  点击 `浏览` 社区插件。
-4.  搜索 "Note Merger"。
-5.  点击 `安装`，然后点击 `启用`。
-
-### 手动安装 (当前)
-
-1.  前往本项目的 GitHub 仓库，在 [Releases 页面](https://www.google.com/search?q=https://github.com/YOUR_GITHUB_USERNAME/YOUR_REPO_NAME/releases/latest) 下载最新版本。
-2.  下载三个文件: `main.js`, `manifest.json`, 和 `styles.css`。
-3.  在你的 Obsidian 仓库中，找到并进入 `.obsidian/plugins/` 目录。
-4.  在此目录下创建一个新文件夹，命名为 `note-merger`。
-5.  将下载的三个文件复制并粘贴到这个新建的 `note-merger` 文件夹中。
-6.  重启 Obsidian 或重载应用 (`Cmd/Ctrl + R`)。
-7.  进入 `设置` -\> `第三方插件`，找到并启用 "Note Merger"。
-
-## 插件配置
-
-进入 `设置` -\> `第三方插件` -\> 点击 "Note Merger" 旁边的选项按钮，你可以配置以下选项：
-
-  - **输出文件后缀 (Output file suffix)**: 添加到原文件名后，用于构成合并后文件名的文本。默认为 `_merged`。
-  - **标题级别 (Heading level)**: 用于每个被合并笔记区块标题的 Markdown 标题级别 (`#` 到 `######`)。默认为 `H2 (##)`。
-  - **内容分隔符 (Content separator)**: 用于分隔不同笔记内容的 Markdown 文本。默认为 `---`。
-
-## 开发者 (贡献代码)
-
-本插件使用 TypeScript 和 ❤️ 构建。如果你希望贡献代码：
-
-1.  克隆本仓库。
-2.  运行 `npm install` 安装依赖。
-3.  运行 `npm run dev` 以观察模式启动实时编译。
-
-## 许可证
-
-本项目基于 [MIT 许可证](https://www.google.com/search?q=LICENSE) 发布。
-
-## 作者
-
-由 **miyuer** 开发。
-
-
-# J-251229-版本升级文档
-
-# Note Merger 版本更新记录
-
-**当前版本**: v1.1.0  
-**代号**: Writer's Cockpit (写手驾驶舱)  
-**发布时间**: 2025-12-29
-
----
-
-## 🚀 [v1.1.0] - 重大更新：写手驾驶舱上线
-
-本次更新标志着 Note Merger 从单一的“笔记整理工具”进化为全方位的**“写作生产力系统”**。我们引入了全新的 **Writer's Cockpit (写手驾驶舱)** 模块，配合 Rime 输入法后端，实现了毫秒级的码字数据统计与可视化分析。
-
-### ✨ 新增功能 (New Features)
-
-#### 1. 📊 Writer's Cockpit (写手驾驶舱)
-新增基于 **React 18** + **Ant Design 5.x** + **G2Plot** 构建的独立数据看板：
-* **多维核心指标**:
-    * **⚡️ 即时速度**: 实时计算最近 1 分钟的打字速度（滑动窗口算法），即时反馈心流状态。
-    * **🚀 今日峰值**: 记录当天的最高手速（字/分），并在即时速度突破历史记录时自动修正。
-    * **⏳ 活跃时长**: 精确统计今日产生过打字的非重复分钟数。
-    * **📈 累计统计**: 包含今日总计、近1小时、近5天及年度总字数。
-* **专业可视化图表**:
-    * **速度趋势图 (双折线)**: 对比展示过去 14 天的“平均速度”与“峰值速度”走势。
-    * **今日节奏图 (分钟级柱状)**: 复盘今日写作节奏，支持横向滚动查看每一分钟的产出。
-    * **年度贡献图 (GitHub Style)**: 热力图直观展示全年打卡记录，Tooltip 支持显示具体日期。
-
-#### 2. 🔄 每日日记自动同步 (Daily Note Sync)
-* 插件后台实现 `FileSystemWatcher`，监听 Rime CSV 日志变化。
-* 打字时自动更新今日日记的 YAML (Frontmatter)，新增字段：
-    * `word_count`: 今日总字数
-    * `last_writes`: 最后一次打字时间戳
-* *注：若今日日记不存在，系统将静默跳过，不会报错。*
-
-#### 3. ⚙️ 动态配置
-* 设置页新增 **"Writer Cockpit"** 区域。
-* 支持自定义 **Rime Log CSV Path**（默认为 `00 信息/工具/RIME/rime_log.csv`）。
-* 修改路径配置后，Service 实例会自动热更新，无需重启插件。
-
-### 🛠️ 技术改进 (Technical Improvements)
-* **架构解耦**: 采用 DDD (领域驱动设计) 思想，将统计逻辑封装在 `StatsService` 中，UI 层 (`DashboardView`) 只负责渲染。
-* **构建升级**: `esbuild` 配置升级支持 `.tsx` 编译；项目 TypeScript 升级至最新版。
-* **类型修复**:
-    * 修复了 Obsidian 插件中 `moment` 命名空间调用的类型报错。
-    * 修复了 Ant Design `Divider` 组件 `orientation` 属性的类型兼容性问题。
-* **生产环境优化**: 移除了 SourceMap，减小了插件体积。
-
----
-
-## 📝 升级指南
-
-1. **安装插件**: 替换最新的 `main.js`, `manifest.json`, `styles.css`。
-2. **配置 Rime**: 确保您的 Rime 输入法已挂载 `stats.lua` 脚本，且日志输出路径与插件设置中的路径一致。
-
----
-
-# Peer Review Guide: Writer's Cockpit Feature
-
-## 📌 变更概述 (Overview)
-本 PR 引入了名为 **Writer's Cockpit** 的子模块。这是一个集成了数据监听、统计计算和 React UI 可视化的完整功能闭环。
-主要目的是通过读取 Rime 输入法生成的 CSV 日志，在 Obsidian 内展示写作数据并同步到 Daily Note。
-
-## 🏗️ 架构变动
-* **`src/writer-cockpit/`**: 新增目录，包含所有相关代码。
-    * `services/StatsService.ts`: 核心业务逻辑，负责解析 CSV、计算分钟级指标、写 YAML。
-    * `views/DashboardView.tsx`: 前端视图，使用 React + AntD + G2Plot。
-    * `types.ts`: 类型定义。
-* **`esbuild.config.mjs`**: 修改为支持 `.tsx` 编译。
-* **`package.json`**: 升级 `typescript` 依赖，新增 `react`, `antd`, `@ant-design/plots` 等依赖。
-
-## 🧪 测试环境准备 (Prerequisites)
-
-由于本功能依赖外部 CSV 文件，请 Reviewer 按以下步骤准备环境：
-
-1. **模拟数据源**:
-   在你的 Obsidian 仓库根目录下，创建一个测试用的 CSV 文件（路径：`00 信息/工具/RIME/rime_log.csv`），并填入以下模拟数据：
-   ```csv
-   2025-12-28 10:00:01, 50
-   2025-12-28 10:00:30, 30
-   2025-12-28 10:01:05, 100
-   2025-12-29 09:00:00, 20
-   ```
-
-构建项目:
-
-Bash
-
-npm install
-npm run build
-
-🔍 重点审查项 (Checklist)
-1. 功能验收
-[ ] 仪表盘渲染: 打开左侧侧边栏的“图表”图标，确认 React 视图能正确加载，无白屏。
-[ ] 图表交互:
-
-确认折线图 Tooltip 能显示单位（"xx 字/分"）。
-
-确认分钟级柱状图在数据较多时会出现横向滚动条。
-
-确认热力图 Tooltip 显示具体日期。
-
-[ ] 数据联动:
-
-手动修改上述 CSV 文件（增加一行），保存文件。
-
-观察仪表盘数字是否在 5 秒内自动刷新。
-
-观察“今日日记”的 Frontmatter 是否新增了 word_count 字段。
-
-2. 代码质量
-[ ] TypeScript 类型: 检查 src/writer-cockpit/types.ts 定义是否清晰。
-[ ] React Hooks: 检查 DashboardView.tsx 中的 useEffect 依赖项是否正确，定时器是否正确清除 (clearInterval)。
-[ ] 异常处理: 检查 StatsService 在 CSV 文件不存在或格式错误时，是否做到静默失败而不崩溃插件。
-
-3. 已知 Hack / 妥协
-TS 类型断言: 在 DashboardView.tsx 中，AntD 的 Divider 组件使用了 orientation={"left" as any}。这是由于 AntD 类型定义与新版 TS 的推断冲突导致的，暂时采用 any 绕过编译报错，不影响运行。
-
-🚀 部署建议
-此版本包含较大的 node_modules 变动（引入了 React 全家桶），生成的 main.js 体积会有所增加。建议在 Release 时使用 npm run build 进行生产环境压缩。
-
-# J-251230-版本升级文档
-
-## Note Merger 版本更新记录
-
-**当前版本**: v1.2.0
-**代号**: Data Bridge (数据桥梁)
-**发布时间**: 2025-12-30
-
----
-
-## 🚀 [v1.2.0] - 新增功能：Markdown 表格一键导出 Excel
-
-本次更新专注于**数据互通性**。我们解决了一个长期困扰 Obsidian 用户的痛点：将 Markdown 表格复制到 Excel/Numbers/Google Sheets 时，格式往往会乱掉（所有内容挤在同一列）。
-v1.2.0 引入了智能悬浮工具，实现了“零配置、一键式”的完美表格迁移。
-
-### ✨ 新增功能 (New Features)
-
-#### 1. 📋 智能表格导出 (Table to Excel)
-* **上下文感知悬浮按钮**: 当光标移动到任意 Markdown 表格区域内时，插件会自动识别表格边界，并在表格右上方浮现 **"Copy to Excel"** 按钮。
-* **一键格式转换**:
-    * 自动去除 Markdown 表格的语法符号（如 `|`, `|---|`）。
-    * 将管道符分隔 (`|`) 智能转换为制表符分隔 (`Tab`)，这是 Excel 识别列的标准。
-    * 自动过滤掉 Markdown 的表头分割线（Separators），确保粘贴后的数据纯净。
-* **非侵入式设计**: 按钮仅在需要时出现，光标离开表格区域后自动隐藏，不干扰正常写作。
-
-### 🛠️ 体验优化 (UX Improvements)
-* **性能优化**: 针对光标移动事件 (`keyup`, `click`) 增加了**防抖 (Debounce)** 处理，确保在快速打字或移动光标时不会造成界面卡顿。
-* **视觉反馈**: 点击复制后，系统会弹出 Notice 提示“已复制到剪贴板”，按钮会自动隐藏，提供流畅的操作确认感。
-
----
-
-## 📝 升级指南
-
-1.  **安装插件**: 替换最新的 `main.js`, `manifest.json`，并**务必添加/更新 `styles.css`**（新增了悬浮按钮样式）。
-2.  **验证**: 打开任意包含表格的笔记，将光标置于表格内，确认是否出现蓝色悬浮按钮。
-
----
-
-# Peer Review Guide: Table Tool Feature
-
-## 📌 变更概述 (Overview)
-本 PR 引入了 `TableToExcelManager` 模块。这是一个轻量级的 UI 交互功能，旨在解决 Markdown 表格直接粘贴到 Excel 格式错乱的问题。
-核心逻辑是监听编辑器光标位置，通过 Regex 探测表格上下文，并将选定的 Markdown 表格内容转换为 TSV (Tab-Separated Values) 格式写入系统剪贴板。
-
-## 🏗️ 架构变动
-* **`src/table-tool/`**: 新增目录。
-    * `TableToExcelManager.ts`: 核心逻辑类。负责 DOM 元素创建、事件监听、坐标计算 (`coordsAtPos`) 以及格式转换逻辑。
-* **`styles.css`**: 新增 `.obsidian-table-export-btn` 相关样式，处理绝对定位和显隐动画。
-* **`main.ts`**:
-    * 引入 `TableToExcelManager`。
-    * 在 `onload` 中注册 DOM 事件监听 (`click`, `keyup`) 和 Workspace 事件。
-    * 在 `onunload` 中调用 `unload()` 清理 DOM 残留。
-
------
-
-## 🚀 [v1.3.0] - 新增功能：提示跳转与页面跳转优化
-
-本次更新主要集中于提升导航效率和优化多标签页工作流，引入了“滚动条标记”和“智能标签页复用”两大核心功能。
-
-### ✨ 新增功能 (New Features)
-
-#### 1. 🎯 滚动条标记 (Scrollbar Markers)
-* **可视化导航**: 在编辑器右侧滚动条区域显示特殊标记，直观指示笔记中 `> [!T]` 等特定类型标注的位置。
-* **一键跳转**: 点击标记可直接跳至笔记中的对应内容区域，大幅提升长笔记的浏览和定位效率。
-* **高度可定制**: 支持根据标记类型（例如 `> [!T]`、`> [!Q]` 等）自定义不同颜色，同时提供默认颜色，使重要信息一目了然。
-
-#### 2. 📑 智能标签页复用 (Smart Tab Reuse / Smart Navigation)
-* **无缝切换**: 当从文件列表（如文件浏览器）点击一个已在其他标签页中打开的笔记时，不再于当前标签页重复打开，而是自动跳转并激活已存在的标签页，保持工作区整洁。
-* **智能识别**: 插件能判断文件是否已打开，并在不干扰用户意图（如按住 `Ctrl/Cmd` 强制新开）的情况下，提供更流畅的导航体验。
-
-### 🛠️ 技术改进 (Technical Improvements)
-* **模块化设计**: 新功能以独立管理器 (`ScrollbarMarkerManager` 和 `TabReuseManager`) 的形式实现，方便维护和扩展。
-* **事件拦截机制**: 采用 DOM 捕获阶段监听 (`capture: true`)，确保在 Obsidian 内部逻辑处理之前拦截文件点击事件，实现精确控制。
-* **性能优化**: 滚动条标记更新增加了防抖处理 (`debounce`)，确保在大量编辑时保持流畅响应。
-
+`narra`

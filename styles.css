@@ -80,3 +80,154 @@ If your plugin does not need CSS, delete this file.
     height: 14px;
     display: inline-block;
 }
+
+body {
+    --note-merger-critic-add-bg: rgba(82, 196, 26, 0.12);
+    --note-merger-critic-add-border: rgba(82, 196, 26, 0.35);
+    --note-merger-critic-add-text: #237804;
+
+    --note-merger-critic-del-bg: rgba(245, 34, 45, 0.10);
+    --note-merger-critic-del-border: rgba(245, 34, 45, 0.28);
+    --note-merger-critic-del-text: #a8071a;
+
+    --note-merger-critic-hl-bg: rgba(250, 173, 20, 0.18);
+    --note-merger-critic-hl-border: rgba(250, 173, 20, 0.35);
+    --note-merger-critic-hl-text: #ad6800;
+
+    --note-merger-critic-comment-bg: rgba(114, 46, 209, 0.10);
+    --note-merger-critic-comment-border: rgba(114, 46, 209, 0.28);
+    --note-merger-critic-comment-text: #531dab;
+    --note-merger-critic-comment-badge-bg: rgba(114, 46, 209, 0.18);
+}
+
+.theme-dark body,
+body.theme-dark {
+    --note-merger-critic-add-bg: rgba(149, 255, 111, 0.12);
+    --note-merger-critic-add-border: rgba(149, 255, 111, 0.32);
+    --note-merger-critic-add-text: #b7eb8f;
+
+    --note-merger-critic-del-bg: rgba(255, 120, 117, 0.12);
+    --note-merger-critic-del-border: rgba(255, 120, 117, 0.30);
+    --note-merger-critic-del-text: #ffccc7;
+
+    --note-merger-critic-hl-bg: rgba(255, 214, 102, 0.15);
+    --note-merger-critic-hl-border: rgba(255, 214, 102, 0.34);
+    --note-merger-critic-hl-text: #ffe58f;
+
+    --note-merger-critic-comment-bg: rgba(177, 123, 255, 0.12);
+    --note-merger-critic-comment-border: rgba(177, 123, 255, 0.30);
+    --note-merger-critic-comment-text: #e9d5ff;
+    --note-merger-critic-comment-badge-bg: rgba(177, 123, 255, 0.22);
+}
+
+.note-merger-critic {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.24em;
+    margin: 0 0.06em;
+    padding: 0.02em 0.38em;
+    border: 1px solid transparent;
+    border-radius: 0.5em;
+    white-space: pre-wrap;
+    line-height: 1.7;
+    vertical-align: baseline;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+}
+
+.note-merger-critic + .note-merger-critic {
+    margin-left: 0.18em;
+}
+
+.note-merger-critic-addition {
+    background: var(--note-merger-critic-add-bg);
+    border-color: var(--note-merger-critic-add-border);
+    color: var(--note-merger-critic-add-text);
+}
+
+.note-merger-critic-deletion {
+    background: var(--note-merger-critic-del-bg);
+    border-color: var(--note-merger-critic-del-border);
+    color: var(--note-merger-critic-del-text);
+    text-decoration: line-through;
+    text-decoration-thickness: 1.4px;
+    text-decoration-color: currentColor;
+}
+
+.note-merger-critic-highlight {
+    background: linear-gradient(
+        180deg,
+        transparent 0%,
+        transparent 28%,
+        var(--note-merger-critic-hl-bg) 28%,
+        var(--note-merger-critic-hl-bg) 100%
+    );
+    border-color: var(--note-merger-critic-hl-border);
+    color: var(--note-merger-critic-hl-text);
+}
+
+.note-merger-critic-comment {
+    background: var(--note-merger-critic-comment-bg);
+    border-color: var(--note-merger-critic-comment-border);
+    color: var(--note-merger-critic-comment-text);
+    padding-left: 0.24em;
+}
+
+.note-merger-critic-comment-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5em;
+    height: 1.5em;
+    border-radius: 999px;
+    background: var(--note-merger-critic-comment-badge-bg);
+    font-size: 0.78em;
+    font-weight: 700;
+}
+
+.note-merger-critic-comment-text {
+    white-space: pre-wrap;
+}
+
+.note-merger-critic-substitution {
+    padding: 0;
+    border: none;
+    background: transparent;
+    gap: 0.2em;
+}
+
+.note-merger-critic-sub-old,
+.note-merger-critic-sub-new {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.02em 0.38em;
+    border-radius: 0.5em;
+    border: 1px solid transparent;
+    white-space: pre-wrap;
+}
+
+.note-merger-critic-sub-old {
+    background: var(--note-merger-critic-del-bg);
+    border-color: var(--note-merger-critic-del-border);
+    color: var(--note-merger-critic-del-text);
+    text-decoration: line-through;
+    text-decoration-thickness: 1.4px;
+    text-decoration-color: currentColor;
+}
+
+.note-merger-critic-sub-new {
+    background: var(--note-merger-critic-add-bg);
+    border-color: var(--note-merger-critic-add-border);
+    color: var(--note-merger-critic-add-text);
+}
+
+.note-merger-critic-sub-arrow {
+    color: var(--text-muted);
+    font-size: 0.9em;
+    font-weight: 600;
+}
+
+.note-merger-critic-widget {
+    cursor: pointer;
+    user-select: none;
+}

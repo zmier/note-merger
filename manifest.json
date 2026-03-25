@@ -1,9 +1,9 @@
 {
 	"id": "note-merger",
 	"name": "Note Merger",
-	"version": "1.3.0",
+	"version": "1.4.0",
 	"minAppVersion": "1.5.11",
-	"description": "A powerful plugin to merge all notes linked from an active file into a single, cohesive document. Perfect for MOCs.",
+	"description": "A writing workflow toolkit for Obsidian: merge linked notes, capture evidence, visualize CriticMarkup, and streamline drafting.",
 	"author": "narra",
 	"authorUrl": "",
 	"fundingUrl": "",
