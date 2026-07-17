@@ -1,5 +1,41 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
+import { App, Notice, PluginSettingTab, Setting } from 'obsidian';
 import NoteMerger from 'main'; 
+
+const CRITICMARKUP_SHARE_GUIDE = `CriticMarkup 语法速查
+
+1. 增补 Addition
+{++插入的文字++}
+
+2. 删除 Deletion
+{--要删除的文字--}
+
+3. 替换 Substitution
+{~~原文~>建议改为~~}
+
+4. 高亮 Highlight
+{==被高亮的文字==}
+
+5. 批注 Comment
+{>>批注内容<<}
+
+常用组合
+
+高亮 + 批注
+{==需要关注的原文==}{>>对这段文字的评审意见<<}
+
+替换 + 批注
+{~~原文~>建议改为~~}{>>修改理由：……<<}
+
+本项目中的常用批注约定
+
+- 问题标注：{>>⚠️[维度简称]：具体说明<<}
+- 正面确认：{>>注释准确<<}
+- 段落级问题可放在段尾单独批注
+
+快捷录入
+
+- 可在 Obsidian 的 Hotkeys 中搜索 CriticMarkup
+- 已支持 Addition / Deletion / Highlight / Comment / Substitution 的快捷插入命令`;
 
 export class NoteMergerSettingTab extends PluginSettingTab {
     plugin: NoteMerger;
@@ -137,5 +173,32 @@ export class NoteMergerSettingTab extends PluginSettingTab {
                 this.plugin.settings.enableTabReuse = value;
                 await this.plugin.saveSettings();
              }));
+
+       containerEl.createEl('h3', { text: 'CriticMarkup Guide' });
+
+       const guideSetting = new Setting(containerEl)
+          .setName('Shareable syntax guide')
+          .setDesc('Copy this summary and share it with collaborators so they can understand the current CriticMarkup conventions quickly.');
+
+       guideSetting.addButton(button => button
+          .setButtonText('Copy Guide')
+          .setCta()
+          .onClick(async () => {
+             try {
+                await navigator.clipboard.writeText(CRITICMARKUP_SHARE_GUIDE);
+                new Notice('CriticMarkup guide copied.');
+             } catch (error) {
+                console.error('Failed to copy CriticMarkup guide', error);
+                new Notice('Failed to copy guide.');
+             }
+          }));
+
+       const guideBox = containerEl.createEl('textarea', {
+          cls: 'note-merger-critic-guide-box'
+       });
+       guideBox.value = CRITICMARKUP_SHARE_GUIDE;
+       guideBox.readOnly = true;
+       guideBox.rows = 22;
+       guideBox.setAttr('aria-label', 'CriticMarkup shareable guide');
     }
 }

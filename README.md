@@ -93,6 +93,7 @@ An Obsidian writing workflow toolkit for merging notes, capturing evidence, visu
 - Live Preview 中将标记折叠为可视化标签
 - 点击 Live Preview 中的标记，可回到原始语法继续编辑
 - 自动跳过代码块、行内代码、脚本和样式节点
+- 提供一组可绑定热键的插入命令，用于快速生成或包裹 CriticMarkup 语法
 
 视觉风格：
 
@@ -161,6 +162,11 @@ An Obsidian writing workflow toolkit for merging notes, capturing evidence, visu
 - `Create Project Lens Note (Context-Aware)`
 - `Quick Capture Evidence (Context-Aware)`
 - `Redirect Capture Evidence (Change Topic)`
+- `CriticMarkup: Insert Addition`
+- `CriticMarkup: Insert Deletion`
+- `CriticMarkup: Insert Highlight`
+- `CriticMarkup: Insert Comment`
+- `CriticMarkup: Insert Substitution`
 - `Merge Linked Notes`
 - `Create Version (Snapshot)`
 - `Compare with Latest Version`
